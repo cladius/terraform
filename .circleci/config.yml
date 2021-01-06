@@ -191,7 +191,7 @@ jobs:
           name: Determine changed website files, if any
           working_directory: terraform
           command: |
-            UPSTREAM_BRANCH=$(
+            PARENT_BRANCH=$(
               # Figure out what the current branch forked from -- should be either master or a vX.Y branch.
               for br in $(git branch -rl --format='%(refname:short)' | grep -E '^origin/(master|v\d+\.\d+)$'); do
                 new_commits=$(git rev-list --first-parent ^${br} HEAD | wc -l);
@@ -201,16 +201,16 @@ jobs:
               | head -n1 \
               | awk '{print $1}';
             )
-            echo "Checking current branch against: ${UPSTREAM_BRANCH}"
-            UPSTREAM_MERGE_BASE=$(git merge-base HEAD ${UPSTREAM_BRANCH})
-            git diff --name-only -z --diff-filter=AMRCT ${UPSTREAM_MERGE_BASE}..HEAD -- ./website/ > /tmp/changed-website-files.txt
+            echo "Checking current branch against: ${PARENT_BRANCH}"
+            MERGE_BASE=$(git merge-base HEAD ${PARENT_BRANCH})
+            git diff --name-only -z --diff-filter=AMRCT ${MERGE_BASE}..HEAD -- ./website/ > /tmp/changed-website-files.txt
               # --name-only: Return a list of affected files but don't show the changes.
               # -z: Make that a null-separated list (instead of newline-separated), and
               #     DON'T mangle non-ASCII characters.
               # --diff-filter=AMRCT: Only list files that were added, modified, renamed,
               #     copied, or had their type changed (file, symlink, etc.). In
               #     particular, we don't want to check deleted files.
-              # ${UPSTREAM_MERGE_BASE}..HEAD: Only consider files that have
+              # ${MERGE_BASE}..HEAD: Only consider files that have
               #     changed since this branch diverged from its parent branch.
               # -- ./website/: Only consider files in the website directory.
             echo "Changed website files:"
