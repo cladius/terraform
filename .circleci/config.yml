@@ -234,14 +234,19 @@ jobs:
           command: git checkout origin/dec20_pr_linkchecks
 
       - run:
+          name: Use local checkout for terraform submodule, instead of cloning again
+          working_directory: terraform-website
+          command: |
+            # Set submodule's URL to our existing checkout.
+            # (Using `pwd` because git's behavior with bare relative paths is unreliable.)
+            git config --file=.gitmodules submodule.ext/terraform.url $(pwd)/../terraform/.git
+            # Make it so `make sync` will grab our current branch instead of stable-website.
+            git config --file=.gitmodules submodule.ext/terraform.branch HEAD
+
+      - run:
           name: Init terraform-website submodules
           working_directory: terraform-website
           command: make sync
-
-      - run:
-          name: Override terraform submodule to use current branch
-          working_directory: terraform-website/ext/terraform
-          command: git fetch ../../../terraform/.git HEAD && git checkout FETCH_HEAD
 
       - run:
           name: Set up terraform-website dependencies
