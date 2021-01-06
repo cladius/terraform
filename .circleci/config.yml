@@ -191,8 +191,10 @@ jobs:
           name: Determine changed website files, if any
           working_directory: terraform
           command: |
+            # Figure out what the current branch forked from. Compare against
+            # master and the set of "vX.Y" branches, and choose whichever branch
+            # we're the *fewest* commits ahead of.
             PARENT_BRANCH=$(
-              # Figure out what the current branch forked from -- should be either master or a vX.Y branch.
               for br in $(git branch -rl --format='%(refname:short)' | grep -E '^origin/(master|v\d+\.\d+)$'); do
                 new_commits=$(git rev-list --first-parent ^${br} HEAD | wc -l);
                 echo "${br} ${new_commits}";
